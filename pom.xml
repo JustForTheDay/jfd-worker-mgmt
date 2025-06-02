@@ -29,6 +29,7 @@
 	<properties>
 		<java.version>21</java.version>
 		<spring-cloud.version>2025.0.0-RC1</spring-cloud.version>
+		<jib-maven-plugin.version>3.4.1</jib-maven-plugin.version>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -147,6 +148,46 @@
 							<artifactId>lombok</artifactId>
 						</exclude>
 					</excludes>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>com.google.cloud.tools</groupId>
+				<artifactId>jib-maven-plugin</artifactId>
+				<version>${jib-maven-plugin.version}</version>
+				<configuration>
+					<to>
+						<image>registry.hub.docker.com/compratap/${project.artifactId}:${project.version}</image>
+						<auth>
+							<username>compratap</username>
+							<password><!--generated-access-token-or-password-here -->
+							</password>
+						</auth>
+					</to>
+					<from>
+						<!--<image>eclipse-temurin:21-jre</image>-->
+						<image>azul/zulu-openjdk-alpine:21-jre</image>
+					</from>
+					<containerizingMode>packaged</containerizingMode>
+					<extraDirectories>
+						<paths>
+							<path>
+								<from>target</from>
+								<into>/app</into>
+							</path>
+						</paths>
+					</extraDirectories>
+					<container>
+						<appRoot>/app</appRoot>
+						<ports>
+							<port>8081</port>
+						</ports>
+						<entrypoint>java</entrypoint>
+						<args>
+							<arg>-jar</arg>
+							<arg>/app/${project.build.finalName}.jar</arg>
+						</args>
+						<user>1000</user>
+					</container>
 				</configuration>
 			</plugin>
 		</plugins>
