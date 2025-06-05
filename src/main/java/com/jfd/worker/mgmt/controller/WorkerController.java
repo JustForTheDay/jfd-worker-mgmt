@@ -2,27 +2,26 @@ package com.jfd.worker.mgmt.controller;
 
 import com.jfd.worker.mgmt.model.registration.WorkerInformation;
 import com.jfd.worker.mgmt.service.WorkerService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.bind.MethodArgumentNotValidException;
-import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.ResponseStatus;
+
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
  * REST Controller for handling worker registration requests.
  */
+@Tag(description = "worker-mgmt", name = "Worker Management")
 @Slf4j
 @RestController // Marks this class as a REST controller
-@RequestMapping("/api") // Base path for all endpoints in this controller
+@RequestMapping("/api/worker") // Base path for all endpoints in this controller
 @AllArgsConstructor
 public class WorkerController {
     private final WorkerService workerService;
@@ -33,12 +32,57 @@ public class WorkerController {
      * @param workerInformation The WorkerInformation object received in the request body.
      * @return A ResponseEntity containing the saved WorkerInformation and HTTP status 201 Created.
      */
-    @PostMapping("/registration") // Maps POST requests to /api/registration
+    @PutMapping("/registration") // Maps POST requests to /api/registration
     public ResponseEntity<WorkerInformation> registerWorker(@Valid @RequestBody WorkerInformation workerInformation) {
         log.info("Received worker registration request for ID: {}", workerInformation.getId());
         WorkerInformation savedWorker = workerService.registerWorker(workerInformation);
         return new ResponseEntity<>(savedWorker, HttpStatus.CREATED); // Return 201 Created status
     }
+
+    /**
+     * method to get worker information by ID.
+     */
+    @GetMapping("/{id}")
+    public ResponseEntity<WorkerInformation> getWorkerById(@PathVariable("id") Integer id) {
+        log.info("Fetching worker information for ID: {}", id);
+        WorkerInformation worker = workerService.getWorkerById(id);
+        if (worker != null) {
+            return new ResponseEntity<>(worker, HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+    }
+
+    /**
+     * method to get all worker information.
+     */
+    @GetMapping("/all") // Maps GET requests to /api/worker/all
+    public ResponseEntity<List<WorkerInformation>> getAllWorkers() {
+        log.info("Fetching all worker information.");
+        List<WorkerInformation> workers = workerService.getAllWorkers();
+        return new ResponseEntity<>(workers, HttpStatus.OK);
+    }
+
+    /**
+     * update worker information by ID.
+     * @param id The ID of the worker to update.
+     * @param workerInformation The updated WorkerInformation object.
+     * @return A ResponseEntity containing the updated WorkerInformation and HTTP status 200 OK.
+     */
+    @PutMapping("/{id}")
+    public ResponseEntity<WorkerInformation> updateWorkerById(
+            @PathVariable("id") Integer id,
+            @Valid @RequestBody WorkerInformation workerInformation) {
+        log.info("Updating worker information for ID: {}", id);
+        WorkerInformation updatedWorker = workerService.updateWorkerById(id, workerInformation);
+        if (updatedWorker != null) {
+            return new ResponseEntity<>(updatedWorker, HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+    }
+
+
 
     /**
      * Exception handler for validation errors (e.g., @Valid annotations).
